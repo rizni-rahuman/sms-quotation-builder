@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SMS Cleaning — Quotation Builder (v3g)</title>
+<style>
+  :root{ --accent:#f07100; --text:#1f2937; --muted:#6b7280; --border:#e5e7eb; --paper:#fff; --bg:#f7f7f8; }
+  *{box-sizing:border-box}
+  body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif; color:var(--text); background:var(--bg) }
+  .wrap{ display:grid; grid-template-columns:380px 1fr; gap:18px; padding:18px; max-width:1220px; margin:0 auto }
+  .panel{ background:var(--paper); border:1px solid var(--border); border-radius:14px; padding:16px; box-shadow:0 6px 18px rgba(0,0,0,.04) }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+  label{ font-size:12px; color:var(--muted); display:block; margin-bottom:6px }
+  input[type="text"],input[type="number"],input[type="date"],textarea,input[type="color"]{
+    width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:10px; background:#fff; font-size:14px; color:var(--text)
+  }
+  textarea{ min-height:90px; resize:vertical }
+  input[type="file"]{ font-size:12px }
+  .btn{ appearance:none; border:0; border-radius:12px; padding:10px 14px; font-weight:600; cursor:pointer; background:var(--accent); color:#fff }
+  .btn.secondary{ background:#111827 }
+  .btn.small{ padding:8px 10px; font-size:12px }
+  .btn-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px }
+  .small{ font-size:12px; color:var(--muted) }
+
+  /* A4 preview canvas */
+  .paper{
+    background:#fff; width:794px; margin:0 auto;
+    border:2px solid var(--accent); border-radius:10px;
+    padding:26px 26px 20px; position:relative;
+  }
+
+  .header{
+    border-bottom:3px solid var(--accent); padding-bottom:10px; margin-bottom:12px;
+  }
+  .header-top{ display:flex; align-items:center; justify-content:space-between; }
+  .title-in-header{ text-align:center; font-size:20px; font-weight:800; color:#111827; margin:8px 0 0 }
+  .logo{ width:110px; aspect-ratio:1/1; object-fit:contain; border:1px solid var(--border); border-radius:10px; background:#fafafa }
+  .company{ text-align:right; font-size:12px; line-height:1.35 }
+
+  .info{ display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:14px; margin:10px 0 0 }
+  .right{ text-align:right }
+
+  .block{ border:1.5px solid var(--accent); border-radius:10px; padding:10px; margin:10px 0; box-shadow:0 1px 0 rgba(0,0,0,.02) }
+  .block h3{ font-size:15px; color:#111827; margin-bottom:6px; padding-bottom:4px; border-bottom:1px dashed var(--accent) }
+
+  .row{ display:flex; gap:8px; flex-wrap:wrap }
+  .pill{ background:#fff; border:1.5px solid var(--accent); padding:6px 10px; border-radius:999px; font-size:12px }
+
+  .keyvals{ display:grid; grid-template-columns:1fr auto; gap:6px; font-size:14px }
+  .totals{ border:1.5px solid var(--accent); border-radius:10px; padding:10px; margin-top:6px }
+  .totals .keyvals div:last-child{ font-weight:700 }
+
+  /* Custom details: label wider than count */
+  .custom-list .head{ display:grid; grid-template-columns:2fr 1fr auto; gap:10px; font-size:12px; color:var(--muted); margin-bottom:6px }
+  .custom-list .custom-row{ display:grid; grid-template-columns:2fr 1fr auto; gap:10px; align-items:end; margin-bottom:8px }
+  .custom-list input{ width:100% }
+
+  /* Square image grid */
+  .gallery{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:8px }
+  .gallery img{ width:100%; aspect-ratio:1/1; height:auto; object-fit:cover; border-radius:10px; border:1px solid var(--border); background:#fafafa; }
+
+  .footer{ border-top:3px solid var(--accent); padding-top:10px; margin-top:10px; display:flex; justify-content:space-between; align-items:flex-end; gap:8px; font-size:12px }
+  .signature{ width:160px; height:70px; object-fit:contain; border:1px dashed var(--border); border-radius:8px; background:#fafafa }
+
+  .page-notes{ margin-top:8px; font-size:10px; color:#999; display:flex; justify-content:space-between }
+
+  .preline{ white-space:pre-line }
+
+  /* Pagination helpers */
+  .keep-together{ break-inside:avoid; page-break-inside:avoid }
+  .page-break{ display:block; height:0; break-before:page; page-break-before:always }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <!-- LEFT: form -->
+  <div class="panel" id="formPanel">
+    <h2>Fill Quotation</h2>
+
+    <div class="grid-2">
+      <div><label>Date</label><input type="date" id="in_date"></div>
+      <div><label>Quotation No.</label><input type="text" id="in_qno" placeholder="SMS-QUO-0001"></div>
+    </div>
+
+    <div class="grid-2">
+      <div><label>Customer Name</label><input type="text" id="in_name" placeholder="Mr./Ms. ..."></div>
+      <div><label>Company</label><input type="text" id="in_company" placeholder="Company name"></div>
+    </div>
+
+    <div class="grid-2">
+      <div><label>Contact Number</label><input type="text" id="in_phone" placeholder="+971 ..."></div>
+      <div><label>TRN Number</label><input type="text" id="in_trn" placeholder="123456789000003"></div>
+    </div>
+
+    <div class="grid-2">
+      <div><label>Area Covered</label><input type="text" id="in_area" value=""></div>
+      <div><label>Address (multi-line)</label><textarea id="in_address" placeholder="Unit, Building
+Street
+City"></textarea></div>
+    </div>
+
+    <div class="grid-2">
+      <div><label>Quotation Title</label><input type="text" id="in_title" value="Villa Deep Cleaning Quotation"></div>
+      <div><label>Details Section Title</label><input type="text" id="in_details_title" value="Villa Deep Cleaning Details"></div>
+    </div>
+
+    <!-- Included Areas & Tasks FIRST (as per request) -->
+    <div><label>Included Areas & Tasks (multi-line)</label><textarea id="in_tasks">Deep cleaning of Living Area
+Deep cleaning of Kitchen (including built-in cabinets)
+Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
+
+    <!-- Standard counts (0 hides in pills) -->
+    <div class="grid-2">
+      <div><label>Bedrooms (count)</label><input type="number" id="in_bed" value="0" min="0"></div>
+      <div><label>Bathrooms (count)</label><input type="number" id="in_bath" value="0" min="0"></div>
+    </div>
+    <div class="grid-2">
+      <div><label>Living Rooms (count)</label><input type="number" id="in_living" value="0" min="0"></div>
+      <div><label>Kitchens (count)</label><input type="number" id="in_kitchen" value="0" min="0"></div>
+    </div>
+    <div class="grid-2">
+      <div><label>Glass Cleaning (count)</label><input type="number" id="in_glass" value="0" min="0"></div>
+      <div><label>Glass Label</label><input type="text" id="in_glass_label" value="Glass Cleaning"></div>
+    </div>
+
+    <!-- Custom Details -->
+    <div class="block">
+      <h3>Custom Details (add as many as you want)</h3>
+      <div class="custom-list" id="custom_list">
+        <div class="head"><span>Label</span><span>Count</span><span></span></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn small" id="btn_add_custom" type="button">+ Add item</button>
+        <button class="btn small secondary" id="btn_clear_custom" type="button">Clear all</button>
+      </div>
+      <p class="small">Empty label or count 0 = hidden from PDF automatically.</p>
+    </div>
+
+    <!-- Pricing -->
+    <div class="grid-2">
+      <div><label>Charge (AED)</label><input type="number" id="in_charge" value="" min="0" step="0.01"></div>
+      <div><label>VAT %</label><input type="number" id="in_vat" value="" min="0" step="0.1" placeholder="5"></div>
+    </div>
+
+    <!-- Process -->
+    <div class="grid-2">
+      <div><label>Duration</label><input type="text" id="in_duration" value=""></div>
+      <div><label>Team</label><input type="text" id="in_team" value=""></div>
+    </div>
+
+    <div><label>Materials (multi-line)</label><textarea id="in_materials"></textarea></div>
+
+    <div><label>Additional Notes (multi-line)</label><textarea id="in_notes"></textarea></div>
+
+    <!-- Images (inputs) + clear -->
+    <div class="block keep-together">
+      <h3>Images</h3>
+      <div class="grid-2">
+        <div><label>Header Logo</label><input type="file" id="in_logo" accept="image/*"></div>
+        <div><label>Signature</label><input type="file" id="in_sign" accept="image/*"></div>
+      </div>
+      <div style="margin-top:8px" class="grid-2">
+        <div><label>Service Photo 1</label><input type="file" class="in_photo" data-idx="0" accept="image/*"></div>
+        <div><label>Service Photo 2</label><input type="file" class="in_photo" data-idx="1" accept="image/*"></div>
+        <div><label>Service Photo 3</label><input type="file" class="in_photo" data-idx="2" accept="image/*"></div>
+        <div><label>Service Photo 4</label><input type="file" class="in_photo" data-idx="3" accept="image/*"></div>
+      </div>
+      <div class="btn-row"><button class="btn secondary small" id="btn_clear_images" type="button">Clear all images</button></div>
+    </div>
+
+    <div class="block">
+      <h3>Theme & Options</h3>
+      <div class="grid-2">
+        <div><label>Theme Color (HEX)</label><input type="color" id="in_color" value="#f07100" /></div>
+        <div><label>Force Images to start on new page</label><input type="checkbox" id="in_images_newpage" checked></div>
+      </div>
+    </div>
+
+    <!-- Signature text -->
+    <div class="block">
+      <h3>Signature Block</h3>
+      <div class="grid-2">
+        <div><label>Signer Name</label><input type="text" id="in_signer_name" value="Sonali Joseph"></div>
+        <div><label>Signer Position</label><input type="text" id="in_signer_role" value="Customer Service Executive"></div>
+      </div>
+    </div>
+
+    <!-- Payment terms (editable) -->
+    <div class="block">
+      <h3>Payment Terms (editable)</h3>
+      <textarea id="in_terms">• Advance: 50% required in advance
+• Balance: Remaining 50% due upon completion</textarea>
+    </div>
+
+    <!-- Save/Load form data -->
+    <div class="block">
+      <h3>Save / Load</h3>
+      <div class="btn-row">
+        <button class="btn small" id="btn_save_json" type="button">Save form data (.json)</button>
+        <label class="btn small secondary" style="cursor:pointer">
+          Load .json
+          <input type="file" id="in_load_json" accept="application/json" style="display:none">
+        </label>
+      </div>
+      <p class="small">Tip: PDFs aren’t reliable to re-import. Use this JSON to reopen and edit later. (Re-attach images if needed.)</p>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" id="btn_pdf">Generate PDF</button>
+      <button class="btn secondary" id="btn_reset" type="button">Reset</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: preview -->
+  <div class="panel">
+    <div id="quote" class="paper">
+      <!-- Header with title ABOVE the line -->
+      <div id="sec_header" class="keep-together header">
+        <div class="header-top">
+          <img id="p_logo" class="logo" alt="Logo">
+          <div class="company preline">
+            <div style="color:var(--accent);font-weight:700">SMS Cleaning Services</div>
+            <div>206 – Golf Park Building, Garhoud, Dubai</div>
+            <div>Tel: +971 4 258 2325 / 2425</div>
+            <div>Email: service@smsmaids.com</div>
+            <div>www.smsmaids.com</div>
+          </div>
+        </div>
+        <div class="title-in-header" id="p_title">Villa Deep Cleaning Quotation</div>
+      </div>
+
+      <!-- Customer info -->
+      <div class="info" id="sec_info">
+        <div>
+          <div><strong>Quotation No:</strong> <span id="p_qno">—</span></div>
+          <div><strong>Name:</strong> <span id="p_name">—</span></div>
+          <div><strong>Company:</strong> <span id="p_company">—</span></div>
+          <div><strong>Contact:</strong> <span id="p_phone">—</span></div>
+          <div><strong>TRN:</strong> <span id="p_trn">—</span></div>
+        </div>
+        <div class="right">
+          <div><strong>Date:</strong> <span id="p_date">—</span></div>
+          <div><strong>Area Covered:</strong> <span id="p_area">—</span></div>
+          <div><strong>Address:</strong> <span id="p_address" class="preline"></span></div>
+        </div>
+      </div>
+
+      <!-- 1) Included Areas & Tasks FIRST -->
+      <div id="sec_tasks" class="block">
+        <h3>Included Areas &amp; Tasks</h3>
+        <div id="p_tasks" class="preline"></div>
+      </div>
+
+      <!-- 2) Pricing / Details after Tasks -->
+      <div id="sec_details" class="block keep-together">
+        <h3 id="p_details_title">Villa Deep Cleaning Details</h3>
+        <div class="row" id="p_pills" style="margin:6px 0 6px"></div>
+        <div class="totals">
+          <div class="keyvals">
+            <div>Charges</div><div class="right">AED <span id="p_charge">0.00</span></div>
+            <div>VAT (<span id="p_vat">0</span>%)</div><div class="right">AED <span id="p_vatamt">0.00</span></div>
+            <div>Total</div><div class="right">AED <span id="p_total">0.00</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Process -->
+      <div id="sec_process" class="block keep-together">
+        <h3>Process &amp; Resources</h3>
+        <div>Duration: <span id="p_duration"></span></div>
+        <div>Team: <span id="p_team"></span></div>
+        <div class="preline">Materials: <span id="p_materials"></span></div>
+      </div>
+
+      <!-- Additional Notes -->
+      <div id="sec_notes" class="block">
+        <h3>Additional Notes</h3>
+        <div id="p_notes" class="preline"></div>
+      </div>
+
+      <!-- Images block (auto-hide when none) -->
+      <div id="sec_images_block" class="block keep-together" style="display:none">
+        <h3>Images</h3>
+        <div class="gallery" id="p_gallery">
+          <img id="g0" alt="Photo 1"><img id="g1" alt="Photo 2">
+          <img id="g2" alt="Photo 3"><img id="g3" alt="Photo 4">
+        </div>
+      </div>
+
+      <!-- Payment Terms (editable) -->
+      <div id="sec_terms" class="block keep-together">
+        <h3>Payment Terms</h3>
+        <div id="p_terms" class="preline"></div>
+      </div>
+
+      <div id="sec_bank" class="block keep-together">
+        <h3>Bank Details</h3>
+        <div>Account Name: <strong>SMS Cleaning Services</strong></div>
+        <div>Bank Name: <strong>RAK Bank</strong></div>
+        <div>Account Number: <strong>0012762395001</strong></div>
+        <div>IBAN: <strong>AE250400000012762395001</strong></div>
+        <div>SWIFT Code: <strong>NRAKAEAK</strong></div>
+      </div>
+
+      <div id="sec_footer" class="footer keep-together">
+        <div>
+          <div style="color:var(--accent);font-weight:700">Thank you!</div>
+          <div>Best Regards,</div>
+          <div><strong id="p_signer_name">Sonali Joseph</strong></div>
+          <div id="p_signer_role">Customer Service Executive</div>
+        </div>
+        <img id="p_sign" class="signature" alt="Signature">
+      </div>
+
+      <div id="sec_notes2" class="page-notes keep-together">
+        <div>T&amp;C apply. Scope limited to reachable surfaces; stubborn stains may not be removable.</div>
+        <div>SMS Cleaning Services</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="html2canvas.min.js"></script>
+<script src="html2pdf.bundle.min.js"></script>
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const todayISO = new Date().toISOString().slice(0,10);
+
+  // Inputs
+  const inDate=$('#in_date'), inQNo=$('#in_qno'), inName=$('#in_name'), inCompany=$('#in_company'),
+        inPhone=$('#in_phone'), inTRN=$('#in_trn'), inArea=$('#in_area'), inAddress=$('#in_address'),
+        inTitle=$('#in_title'), inDetailsTitle=$('#in_details_title'),
+        inBed=$('#in_bed'), inBath=$('#in_bath'), inLiving=$('#in_living'), inKitchen=$('#in_kitchen'),
+        inGlass=$('#in_glass'), inGlassLabel=$('#in_glass_label'),
+        inCharge=$('#in_charge'), inVat=$('#in_vat'),
+        inDuration=$('#in_duration'), inTeam=$('#in_team'),
+        inMaterials=$('#in_materials'), inTasks=$('#in_tasks'), inNotes=$('#in_notes'),
+        inColor=$('#in_color'), inImagesNewPage=$('#in_images_newpage'),
+        inLogo=$('#in_logo'), inSign=$('#in_sign'),
+        inSignerName=$('#in_signer_name'), inSignerRole=$('#in_signer_role'),
+        inTerms=$('#in_terms');
+
+  // Preview refs
+  const pTitle=$('#p_title'), pQNo=$('#p_qno'), pName=$('#p_name'), pCompany=$('#p_company'), pPhone=$('#p_phone'), pTRN=$('#p_trn'),
+        pDate=$('#p_date'), pArea=$('#p_area'), pAddress=$('#p_address'),
+        pDetailsTitle=$('#p_details_title'), pPills=$('#p_pills'),
+        pCharge=$('#p_charge'), pVat=$('#p_vat'), pVatAmt=$('#p_vatamt'), pTotal=$('#p_total'),
+        pDuration=$('#p_duration'), pTeam=$('#p_team'), pMaterials=$('#p_materials'),
+        pTasks=$('#p_tasks'), pNotes=$('#p_notes'),
+        pLogo=$('#p_logo'), pSign=$('#p_sign'),
+        pSignerName=$('#p_signer_name'), pSignerRole=$('#p_signer_role'),
+        pTerms=$('#p_terms'),
+        g0=$('#g0'), g1=$('#g1'), g2=$('#g2'), g3=$('#g3'),
+        secImages=$('#sec_images_block');
+
+  inDate.value = todayISO;
+
+  // Custom details list
+  const customList = document.getElementById('custom_list');
+  const headerHTML = '<div class="head"><span>Label</span><span>Count</span><span></span></div>';
+  function addCustomRow(label='', count=''){
+    const row = document.createElement('div');
+    row.className = 'custom-row';
+    row.innerHTML = `
+      <div><input type="text" data-role="label" placeholder="e.g., Maid Room" value="${label}"></div>
+      <div><input type="number" data-role="count" placeholder="0" min="0" step="1" value="${count}"></div>
+      <button class="btn secondary small" type="button">Remove</button>
+    `;
+    row.querySelector('button').addEventListener('click', ()=>{ row.remove(); updateAll(); });
+    row.querySelectorAll('input').forEach(el=>{ el.addEventListener('input', updateAll); el.addEventListener('keyup', updateAll); });
+    customList.appendChild(row);
+  }
+  function resetCustomList(startRows=2){ customList.innerHTML = headerHTML; for(let i=0;i<startRows;i++) addCustomRow(); }
+  $('#btn_add_custom').addEventListener('click', ()=> addCustomRow());
+  $('#btn_clear_custom').addEventListener('click', ()=>{ resetCustomList(); updateAll(); });
+  resetCustomList();
+
+  function fmt(n){ return (n===''||n===null||isNaN(Number(n))) ? '0.00' : Number(n).toFixed(2); }
+  function addPill(label, count){
+    const c = Number(count||0), name=(label||'').trim();
+    if(!name || c<=0) return;
+    const el=document.createElement('span'); el.className='pill'; el.textContent = `${c} ${name}`;
+    pPills.appendChild(el);
+  }
+  function hasGalleryImages(){ return !!(g0.src || g1.src || g2.src || g3.src); }
+
+  // Paginator (same logic, respects hidden Images and new order)
+  function paginate(){
+    const page = document.getElementById('quote');
+    page.querySelectorAll('.page-break.__auto').forEach(n=>n.remove());
+    const A4H=1123, PAD=60, USABLE=A4H-PAD, GAP=10;
+
+    const sections = [
+      '#sec_header','#sec_info','#sec_tasks','#sec_details','#sec_process','#sec_notes',
+      '#sec_images_block','#sec_terms','#sec_bank','#sec_footer','#sec_notes2'
+    ].map(s=>page.querySelector(s)).filter(Boolean).filter(n=>n.style.display!=='none');
+
+    let used=0;
+    for(const node of sections){
+      if(node.id==='sec_images_block' && inImagesNewPage.checked && used>0){
+        const br=document.createElement('div'); br.className='page-break __auto'; node.before(br); used=0;
+      }
+      const cs=getComputedStyle(node);
+      const h=node.offsetHeight + (parseFloat(cs.marginTop)||0) + (parseFloat(cs.marginBottom)||0);
+      const keep=node.classList.contains('keep-together');
+      if( (keep && used+h>USABLE) || used>USABLE ){
+        const br=document.createElement('div'); br.className='page-break __auto'; node.before(br); used=0;
+      }
+      used += h + GAP;
+    }
+  }
+
+  function updateAll(){
+    // Theme
+    document.documentElement.style.setProperty('--accent', inColor.value || '#f07100');
+
+    // Header/title
+    pTitle.textContent = inTitle.value.trim() || 'Quotation';
+
+    // Customer block
+    pQNo.textContent   = ($('#in_qno').value||'').trim() || '—';
+    pName.textContent  = inName.value.trim() || '—';
+    pCompany.textContent = inCompany.value.trim() || '—';
+    pPhone.textContent = inPhone.value.trim() || '—';
+    pTRN.textContent   = ($('#in_trn').value||'').trim() || '—';
+    pDate.textContent  = inDate.value || '—';
+    pArea.textContent  = inArea.value.trim() || '';
+    pAddress.textContent = inAddress.value || '';
+
+    // Details title
+    pDetailsTitle.textContent = inDetailsTitle.value.trim() || 'Details';
+
+    // Pills
+    pPills.innerHTML='';
+    addPill('Bedroom', inBed.value);
+    addPill('Bathroom', inBath.value);
+    addPill('Living Room', inLiving.value);
+    addPill('Kitchen', inKitchen.value);
+    addPill(inGlassLabel.value || 'Glass Cleaning', inGlass.value);
+    customList.querySelectorAll('.custom-row').forEach(r=>{
+      addPill(r.querySelector('[data-role="label"]').value, r.querySelector('[data-role="count"]').value);
+    });
+
+    // Totals
+    const ch=Number(inCharge.value||0), v=Number(inVat.value||0), va=ch*(v/100||0);
+    pCharge.textContent=fmt(ch); pVat.textContent=(v||0); pVatAmt.textContent=fmt(va); pTotal.textContent=fmt(ch+va);
+
+    // Process & Notes
+    pDuration.textContent = inDuration.value;
+    pTeam.textContent     = inTeam.value;
+    pMaterials.textContent= inMaterials.value;
+    pTasks.textContent    = inTasks.value;
+    pNotes.textContent    = inNotes.value;
+    pTerms.textContent    = inTerms.value;
+
+    // Signature text
+    pSignerName.textContent = ($('#in_signer_name').value||'').trim();
+    pSignerRole.textContent = ($('#in_signer_role').value||'').trim();
+
+    // Images section visibility
+    secImages.style.display = hasGalleryImages() ? '' : 'none';
+
+    paginate();
+  }
+
+  // Image loaders + clear all
+  function loadImageTo(fileInput, imgEl){
+    const f = fileInput.files && fileInput.files[0];
+    if(!f){ imgEl.src=''; updateAll(); return; }
+    const reader = new FileReader();
+    reader.onload = e => { imgEl.src = e.target.result; updateAll(); };
+    reader.readAsDataURL(f);
+  }
+  $('#in_logo').addEventListener('change', e=>loadImageTo(e.target, $('#p_logo')));
+  $('#in_sign').addEventListener('change', e=>loadImageTo(e.target, $('#p_sign')));
+  document.querySelectorAll('.in_photo').forEach(inp=>{
+    inp.addEventListener('change', e=>{
+      loadImageTo(e.target, [g0,g1,g2,g3][Number(e.target.dataset.idx)]);
+    });
+  });
+  $('#btn_clear_images').addEventListener('click', ()=>{
+    document.querySelectorAll('.in_photo').forEach(i=>i.value='');
+    [g0,g1,g2,g3].forEach(img=>img.src='');
+    updateAll();
+  });
+
+  // Live updates
+  document.getElementById('formPanel').addEventListener('input', updateAll);
+  document.getElementById('formPanel').addEventListener('keyup', updateAll);
+
+  // Save / Load JSON (for re-editing later)
+  function collectState(){
+    const state = {
+      date: inDate.value, qno: $('#in_qno').value, name: inName.value, company: inCompany.value,
+      phone: inPhone.value, trn: $('#in_trn').value, area: inArea.value, address: inAddress.value,
+      title: inTitle.value, detailsTitle: inDetailsTitle.value,
+      counts: { bed: inBed.value, bath: inBath.value, living: inLiving.value, kitchen: inKitchen.value, glass: inGlass.value, glassLabel: inGlassLabel.value },
+      charge: inCharge.value, vat: inVat.value, duration: inDuration.value, team: inTeam.value,
+      materials: inMaterials.value, tasks: inTasks.value, notes: inNotes.value, terms: inTerms.value,
+      signerName: $('#in_signer_name').value, signerRole: $('#in_signer_role').value, color: $('#in_color').value,
+      custom: Array.from(customList.querySelectorAll('.custom-row')).map(r=>({
+        label: r.querySelector('[data-role="label"]').value,
+        count: r.querySelector('[data-role="count"]').value
+      }))
+    };
+    return state;
+  }
+  function applyState(s){
+    if(!s) return;
+    inDate.value=s.date||''; $('#in_qno').value=s.qno||''; inName.value=s.name||''; inCompany.value=s.company||'';
+    inPhone.value=s.phone||''; $('#in_trn').value=s.trn||''; inArea.value=s.area||''; inAddress.value=s.address||'';
+    inTitle.value=s.title||''; inDetailsTitle.value=s.detailsTitle||'';
+    if(s.counts){ inBed.value=s.counts.bed||0; inBath.value=s.counts.bath||0; inLiving.value=s.counts.living||0; inKitchen.value=s.counts.kitchen||0; inGlass.value=s.counts.glass||0; inGlassLabel.value=s.counts.glassLabel||'Glass Cleaning'; }
+    inCharge.value=s.charge||''; inVat.value=s.vat||''; inDuration.value=s.duration||''; inTeam.value=s.team||'';
+    inMaterials.value=s.materials||''; inTasks.value=s.tasks||''; inNotes.value=s.notes||''; inTerms.value=s.terms||'';
+    $('#in_signer_name').value=s.signerName||''; $('#in_signer_role').value=s.signerRole||''; $('#in_color').value=s.color||'#f07100';
+    resetCustomList(0); (s.custom||[]).forEach(it=>addCustomRow(it.label||'', it.count||''));
+    if((s.custom||[]).length===0) resetCustomList();
+    updateAll();
+  }
+
+  $('#btn_save_json').addEventListener('click', ()=>{
+    const data = JSON.stringify(collectState(), null, 2);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([data], {type:'application/json'}));
+    const name = (inName.value || 'quotation').replace(/[^\w\-]+/g,'_');
+    a.download = `${name}_${inDate.value || 'date'}.json`;
+    a.click();
+  });
+  $('#in_load_json').addEventListener('change', (e)=>{
+    const f = e.target.files && e.target.files[0]; if(!f) return;
+    const r = new FileReader(); r.onload = ev => { try{ applyState(JSON.parse(ev.target.result)); }catch(err){ alert('Invalid JSON'); } };
+    r.readAsText(f);
+  });
+
+  // Export PDF
+  document.getElementById('btn_pdf').addEventListener('click', e=>{
+    e.preventDefault();
+    updateAll();
+    const safeName = (inName.value || 'Quotation').replace(/[^\w\-]+/g,'_');
+    const fn = `${safeName}_${inDate.value || todayISO}.pdf`;
+    html2pdf().set({
+      margin:0,
+      filename:fn,
+      image:{ type:'jpeg', quality:0.98 },
+      html2canvas:{ scale:2, useCORS:true, backgroundColor:'#ffffff' },
+      jsPDF:{ unit:'px', format:[794,1123], orientation:'portrait' },
+      pagebreak:{ mode:['css','legacy'] }
+    }).from(document.getElementById('quote')).save();
+  });
+
+  // Reset
+  document.getElementById('btn_reset').addEventListener('click', ()=>{
+    if(!confirm('Clear the form and preview?')) return;
+    document.querySelectorAll('input[type=text], input[type=number], textarea').forEach(el=>el.value='');
+    [inLogo,inSign].forEach(i=>i.value='');
+    [g0,g1,g2,g3].forEach(img=>img.src='');
+    resetCustomList();
+    updateAll();
+  });
+
+  // First render
+  updateAll();
+  window.addEventListener('load', updateAll);
+})();
+</script>
+</body>
+</html>
