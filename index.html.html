@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SMS Cleaning — Quotation Builder (v3g)</title>
+<title>SMS Cleaning — Quotation Builder (v3g-merged vercel)</title>
 <style>
   :root{ --accent:#f07100; --text:#1f2937; --muted:#6b7280; --border:#e5e7eb; --paper:#fff; --bg:#f7f7f8; }
   *{box-sizing:border-box}
@@ -23,16 +23,13 @@
   .btn-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px }
   .small{ font-size:12px; color:var(--muted) }
 
-  /* A4 preview canvas */
   .paper{
     background:#fff; width:794px; margin:0 auto;
     border:2px solid var(--accent); border-radius:10px;
     padding:26px 26px 20px; position:relative;
   }
 
-  .header{
-    border-bottom:3px solid var(--accent); padding-bottom:10px; margin-bottom:12px;
-  }
+  .header{ border-bottom:3px solid var(--accent); padding-bottom:10px; margin-bottom:12px; }
   .header-top{ display:flex; align-items:center; justify-content:space-between; }
   .title-in-header{ text-align:center; font-size:20px; font-weight:800; color:#111827; margin:8px 0 0 }
   .logo{ width:110px; aspect-ratio:1/1; object-fit:contain; border:1px solid var(--border); border-radius:10px; background:#fafafa }
@@ -51,12 +48,10 @@
   .totals{ border:1.5px solid var(--accent); border-radius:10px; padding:10px; margin-top:6px }
   .totals .keyvals div:last-child{ font-weight:700 }
 
-  /* Custom details: label wider than count */
   .custom-list .head{ display:grid; grid-template-columns:2fr 1fr auto; gap:10px; font-size:12px; color:var(--muted); margin-bottom:6px }
   .custom-list .custom-row{ display:grid; grid-template-columns:2fr 1fr auto; gap:10px; align-items:end; margin-bottom:8px }
   .custom-list input{ width:100% }
 
-  /* Square image grid */
   .gallery{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:8px }
   .gallery img{ width:100%; aspect-ratio:1/1; height:auto; object-fit:cover; border-radius:10px; border:1px solid var(--border); background:#fafafa; }
 
@@ -67,7 +62,6 @@
 
   .preline{ white-space:pre-line }
 
-  /* Pagination helpers */
   .keep-together{ break-inside:avoid; page-break-inside:avoid }
   .page-break{ display:block; height:0; break-before:page; page-break-before:always }
 </style>
@@ -81,7 +75,7 @@
 
     <div class="grid-2">
       <div><label>Date</label><input type="date" id="in_date"></div>
-      <div><label>Quotation No.</label><input type="text" id="in_qno" placeholder="SMS-QUO-0001"></div>
+      <div><label>Quotation No.</label><input type="text" id="in_qno" placeholder="SMS-QUO-0100"></div>
     </div>
 
     <div class="grid-2">
@@ -106,12 +100,12 @@ City"></textarea></div>
       <div><label>Details Section Title</label><input type="text" id="in_details_title" value="Villa Deep Cleaning Details"></div>
     </div>
 
-    <!-- Included Areas & Tasks FIRST (as per request) -->
+    <!-- Included Areas & Tasks FIRST -->
     <div><label>Included Areas & Tasks (multi-line)</label><textarea id="in_tasks">Deep cleaning of Living Area
 Deep cleaning of Kitchen (including built-in cabinets)
 Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
 
-    <!-- Standard counts (0 hides in pills) -->
+    <!-- Standard counts -->
     <div class="grid-2">
       <div><label>Bedrooms (count)</label><input type="number" id="in_bed" value="0" min="0"></div>
       <div><label>Bathrooms (count)</label><input type="number" id="in_bath" value="0" min="0"></div>
@@ -151,10 +145,9 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
     </div>
 
     <div><label>Materials (multi-line)</label><textarea id="in_materials"></textarea></div>
-
     <div><label>Additional Notes (multi-line)</label><textarea id="in_notes"></textarea></div>
 
-    <!-- Images (inputs) + clear -->
+    <!-- Images -->
     <div class="block keep-together">
       <h3>Images</h3>
       <div class="grid-2">
@@ -167,7 +160,9 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
         <div><label>Service Photo 3</label><input type="file" class="in_photo" data-idx="2" accept="image/*"></div>
         <div><label>Service Photo 4</label><input type="file" class="in_photo" data-idx="3" accept="image/*"></div>
       </div>
-      <div class="btn-row"><button class="btn secondary small" id="btn_clear_images" type="button">Clear all images</button></div>
+      <div class="btn-row">
+        <button class="btn secondary small" id="btn_clear_images" type="button">Clear all images</button>
+      </div>
     </div>
 
     <div class="block">
@@ -187,14 +182,14 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
       </div>
     </div>
 
-    <!-- Payment terms (editable) -->
+    <!-- Payment terms -->
     <div class="block">
       <h3>Payment Terms (editable)</h3>
       <textarea id="in_terms">• Advance: 50% required in advance
 • Balance: Remaining 50% due upon completion</textarea>
     </div>
 
-    <!-- Save/Load form data -->
+    <!-- Save / Load -->
     <div class="block">
       <h3>Save / Load</h3>
       <div class="btn-row">
@@ -203,8 +198,9 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
           Load .json
           <input type="file" id="in_load_json" accept="application/json" style="display:none">
         </label>
+        <button class="btn small" id="btn_save_sheet" type="button">Save to Google Sheet</button>
       </div>
-      <p class="small">Tip: PDFs aren’t reliable to re-import. Use this JSON to reopen and edit later. (Re-attach images if needed.)</p>
+      <p class="small">Use JSON to reopen and edit. Google Sheet save writes a new row for each quotation.</p>
     </div>
 
     <div class="btn-row">
@@ -216,7 +212,6 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
   <!-- RIGHT: preview -->
   <div class="panel">
     <div id="quote" class="paper">
-      <!-- Header with title ABOVE the line -->
       <div id="sec_header" class="keep-together header">
         <div class="header-top">
           <img id="p_logo" class="logo" alt="Logo">
@@ -231,7 +226,6 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
         <div class="title-in-header" id="p_title">Villa Deep Cleaning Quotation</div>
       </div>
 
-      <!-- Customer info -->
       <div class="info" id="sec_info">
         <div>
           <div><strong>Quotation No:</strong> <span id="p_qno">—</span></div>
@@ -247,13 +241,11 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
         </div>
       </div>
 
-      <!-- 1) Included Areas & Tasks FIRST -->
       <div id="sec_tasks" class="block">
         <h3>Included Areas &amp; Tasks</h3>
         <div id="p_tasks" class="preline"></div>
       </div>
 
-      <!-- 2) Pricing / Details after Tasks -->
       <div id="sec_details" class="block keep-together">
         <h3 id="p_details_title">Villa Deep Cleaning Details</h3>
         <div class="row" id="p_pills" style="margin:6px 0 6px"></div>
@@ -266,7 +258,6 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
         </div>
       </div>
 
-      <!-- Process -->
       <div id="sec_process" class="block keep-together">
         <h3>Process &amp; Resources</h3>
         <div>Duration: <span id="p_duration"></span></div>
@@ -274,13 +265,11 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
         <div class="preline">Materials: <span id="p_materials"></span></div>
       </div>
 
-      <!-- Additional Notes -->
       <div id="sec_notes" class="block">
         <h3>Additional Notes</h3>
         <div id="p_notes" class="preline"></div>
       </div>
 
-      <!-- Images block (auto-hide when none) -->
       <div id="sec_images_block" class="block keep-together" style="display:none">
         <h3>Images</h3>
         <div class="gallery" id="p_gallery">
@@ -289,7 +278,6 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
         </div>
       </div>
 
-      <!-- Payment Terms (editable) -->
       <div id="sec_terms" class="block keep-together">
         <h3>Payment Terms</h3>
         <div id="p_terms" class="preline"></div>
@@ -322,12 +310,22 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
   </div>
 </div>
 
-<script src="html2canvas.min.js"></script>
-<script src="html2pdf.bundle.min.js"></script>
+<script src="./assets/html2canvas.min.js"></script>
+<script src="./assets/html2pdf.bundle.min.js"></script>
 <script>
 (function(){
   const $ = s => document.querySelector(s);
   const todayISO = new Date().toISOString().slice(0,10);
+
+  // Quotation number config (localStorage)
+  const Q_PREFIX='SMS-QUO-'; const Q_PAD=4; const Q_START=100; const LS_Q_KEY='sms_quo_counter';
+  function getCounter(){ const n=Number(localStorage.getItem(LS_Q_KEY)); return Number.isFinite(n)?n:Q_START; }
+  function setCounter(n){ localStorage.setItem(LS_Q_KEY, String(n)); }
+  function formatQ(n){ return Q_PREFIX + String(n).padStart(Q_PAD,'0'); }
+  function ensureQuotationNumber(){
+    const inQ=$('#in_qno'); if(!inQ.value.trim()) inQ.value=formatQ(getCounter());
+    const pQ=$('#p_qno'); if(pQ) pQ.textContent=inQ.value||'—';
+  }
 
   // Inputs
   const inDate=$('#in_date'), inQNo=$('#in_qno'), inName=$('#in_name'), inCompany=$('#in_company'),
@@ -343,7 +341,7 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
         inSignerName=$('#in_signer_name'), inSignerRole=$('#in_signer_role'),
         inTerms=$('#in_terms');
 
-  // Preview refs
+  // Preview
   const pTitle=$('#p_title'), pQNo=$('#p_qno'), pName=$('#p_name'), pCompany=$('#p_company'), pPhone=$('#p_phone'), pTRN=$('#p_trn'),
         pDate=$('#p_date'), pArea=$('#p_area'), pAddress=$('#p_address'),
         pDetailsTitle=$('#p_details_title'), pPills=$('#p_pills'),
@@ -356,84 +354,72 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
         g0=$('#g0'), g1=$('#g1'), g2=$('#g2'), g3=$('#g3'),
         secImages=$('#sec_images_block');
 
-  inDate.value = todayISO;
+  inDate.value=todayISO;
 
-  // Custom details list
-  const customList = document.getElementById('custom_list');
-  const headerHTML = '<div class="head"><span>Label</span><span>Count</span><span></span></div>';
+  // Custom details
+  const customList=document.getElementById('custom_list');
+  const headerHTML='<div class="head"><span>Label</span><span>Count</span><span></span></div>';
   function addCustomRow(label='', count=''){
-    const row = document.createElement('div');
-    row.className = 'custom-row';
-    row.innerHTML = `
+    const row=document.createElement('div'); row.className='custom-row';
+    row.innerHTML=`
       <div><input type="text" data-role="label" placeholder="e.g., Maid Room" value="${label}"></div>
       <div><input type="number" data-role="count" placeholder="0" min="0" step="1" value="${count}"></div>
-      <button class="btn secondary small" type="button">Remove</button>
-    `;
+      <button class="btn secondary small" type="button">Remove</button>`;
     row.querySelector('button').addEventListener('click', ()=>{ row.remove(); updateAll(); });
     row.querySelectorAll('input').forEach(el=>{ el.addEventListener('input', updateAll); el.addEventListener('keyup', updateAll); });
     customList.appendChild(row);
   }
-  function resetCustomList(startRows=2){ customList.innerHTML = headerHTML; for(let i=0;i<startRows;i++) addCustomRow(); }
-  $('#btn_add_custom').addEventListener('click', ()=> addCustomRow());
+  function resetCustomList(startRows=2){ customList.innerHTML=headerHTML; for(let i=0;i<startRows;i++) addCustomRow(); }
+  $('#btn_add_custom').addEventListener('click', ()=>addCustomRow());
   $('#btn_clear_custom').addEventListener('click', ()=>{ resetCustomList(); updateAll(); });
   resetCustomList();
 
-  function fmt(n){ return (n===''||n===null||isNaN(Number(n))) ? '0.00' : Number(n).toFixed(2); }
-  function addPill(label, count){
-    const c = Number(count||0), name=(label||'').trim();
-    if(!name || c<=0) return;
-    const el=document.createElement('span'); el.className='pill'; el.textContent = `${c} ${name}`;
-    pPills.appendChild(el);
+  function fmt(n){ return (n===''||n===null||isNaN(Number(n)))?'0.00':Number(n).toFixed(2); }
+  function addPill(label,count){
+    const c=Number(count||0), name=(label||'').trim(); if(!name||c<=0) return;
+    const el=document.createElement('span'); el.className='pill'; el.textContent=`${c} ${name}`; pPills.appendChild(el);
   }
-  function hasGalleryImages(){ return !!(g0.src || g1.src || g2.src || g3.src); }
+  function hasGalleryImages(){
+    return Array.from(document.querySelectorAll('#p_gallery img')).some(img=>!!img.getAttribute('src'));
+  }
 
-  // Paginator (same logic, respects hidden Images and new order)
+  // Pagination
   function paginate(){
-    const page = document.getElementById('quote');
+    const page=document.getElementById('quote');
     page.querySelectorAll('.page-break.__auto').forEach(n=>n.remove());
     const A4H=1123, PAD=60, USABLE=A4H-PAD, GAP=10;
-
-    const sections = [
-      '#sec_header','#sec_info','#sec_tasks','#sec_details','#sec_process','#sec_notes',
-      '#sec_images_block','#sec_terms','#sec_bank','#sec_footer','#sec_notes2'
-    ].map(s=>page.querySelector(s)).filter(Boolean).filter(n=>n.style.display!=='none');
-
+    const sections=['#sec_header','#sec_info','#sec_tasks','#sec_details','#sec_process','#sec_notes','#sec_images_block','#sec_terms','#sec_bank','#sec_footer','#sec_notes2']
+      .map(s=>page.querySelector(s)).filter(Boolean).filter(n=>n.style.display!=='none');
     let used=0;
     for(const node of sections){
       if(node.id==='sec_images_block' && inImagesNewPage.checked && used>0){
         const br=document.createElement('div'); br.className='page-break __auto'; node.before(br); used=0;
       }
       const cs=getComputedStyle(node);
-      const h=node.offsetHeight + (parseFloat(cs.marginTop)||0) + (parseFloat(cs.marginBottom)||0);
+      const h=node.offsetHeight+(parseFloat(cs.marginTop)||0)+(parseFloat(cs.marginBottom)||0);
       const keep=node.classList.contains('keep-together');
-      if( (keep && used+h>USABLE) || used>USABLE ){
+      if((keep && used+h>USABLE) || used>USABLE){
         const br=document.createElement('div'); br.className='page-break __auto'; node.before(br); used=0;
       }
-      used += h + GAP;
+      used+=h+GAP;
     }
   }
 
   function updateAll(){
-    // Theme
     document.documentElement.style.setProperty('--accent', inColor.value || '#f07100');
+    pTitle.textContent=inTitle.value.trim()||'Quotation';
 
-    // Header/title
-    pTitle.textContent = inTitle.value.trim() || 'Quotation';
+    pQNo.textContent=(inQNo.value||'').trim()||'—';
+    pName.textContent=inName.value.trim()||'—';
+    pCompany.textContent=inCompany.value.trim()||'—';
+    pPhone.textContent=inPhone.value.trim()||'—';
+    pTRN.textContent=inTRN.value.trim()||'—';
+    pDate.textContent=inDate.value||'—';
+    pArea.textContent=inArea.value.trim()||'';
+    pAddress.textContent=inAddress.value||'';
 
-    // Customer block
-    pQNo.textContent   = ($('#in_qno').value||'').trim() || '—';
-    pName.textContent  = inName.value.trim() || '—';
-    pCompany.textContent = inCompany.value.trim() || '—';
-    pPhone.textContent = inPhone.value.trim() || '—';
-    pTRN.textContent   = ($('#in_trn').value||'').trim() || '—';
-    pDate.textContent  = inDate.value || '—';
-    pArea.textContent  = inArea.value.trim() || '';
-    pAddress.textContent = inAddress.value || '';
+    pDetailsTitle.textContent=inDetailsTitle.value.trim()||'Details';
 
-    // Details title
-    pDetailsTitle.textContent = inDetailsTitle.value.trim() || 'Details';
-
-    // Pills
     pPills.innerHTML='';
     addPill('Bedroom', inBed.value);
     addPill('Bathroom', inBath.value);
@@ -444,112 +430,125 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
       addPill(r.querySelector('[data-role="label"]').value, r.querySelector('[data-role="count"]').value);
     });
 
-    // Totals
     const ch=Number(inCharge.value||0), v=Number(inVat.value||0), va=ch*(v/100||0);
     pCharge.textContent=fmt(ch); pVat.textContent=(v||0); pVatAmt.textContent=fmt(va); pTotal.textContent=fmt(ch+va);
 
-    // Process & Notes
-    pDuration.textContent = inDuration.value;
-    pTeam.textContent     = inTeam.value;
-    pMaterials.textContent= inMaterials.value;
-    pTasks.textContent    = inTasks.value;
-    pNotes.textContent    = inNotes.value;
-    pTerms.textContent    = inTerms.value;
+    pDuration.textContent=inDuration.value;
+    pTeam.textContent=inTeam.value;
+    pMaterials.textContent=inMaterials.value;
+    pTasks.textContent=inTasks.value;
+    pNotes.textContent=inNotes.value;
+    pTerms.textContent=inTerms.value;
 
-    // Signature text
-    pSignerName.textContent = ($('#in_signer_name').value||'').trim();
-    pSignerRole.textContent = ($('#in_signer_role').value||'').trim();
+    pSignerName.textContent=inSignerName.value.trim();
+    pSignerRole.textContent=inSignerRole.value.trim();
 
-    // Images section visibility
-    secImages.style.display = hasGalleryImages() ? '' : 'none';
-
+    secImages.style.display=hasGalleryImages()? '':'none';
     paginate();
   }
 
-  // Image loaders + clear all
-  function loadImageTo(fileInput, imgEl){
-    const f = fileInput.files && fileInput.files[0];
-    if(!f){ imgEl.src=''; updateAll(); return; }
-    const reader = new FileReader();
-    reader.onload = e => { imgEl.src = e.target.result; updateAll(); };
+  function loadImageTo(fileInput,imgEl){
+    const f=fileInput.files && fileInput.files[0];
+    if(!f){ imgEl.removeAttribute('src'); updateAll(); return; }
+    const reader=new FileReader();
+    reader.onload=e=>{ imgEl.src=e.target.result; updateAll(); };
     reader.readAsDataURL(f);
   }
-  $('#in_logo').addEventListener('change', e=>loadImageTo(e.target, $('#p_logo')));
-  $('#in_sign').addEventListener('change', e=>loadImageTo(e.target, $('#p_sign')));
+  $('#in_logo').addEventListener('change', e=>loadImageTo(e.target, pLogo));
+  $('#in_sign').addEventListener('change', e=>loadImageTo(e.target, pSign));
   document.querySelectorAll('.in_photo').forEach(inp=>{
     inp.addEventListener('change', e=>{
-      loadImageTo(e.target, [g0,g1,g2,g3][Number(e.target.dataset.idx)]);
+      const idx=Number(e.target.dataset.idx);
+      loadImageTo(e.target, [g0,g1,g2,g3][idx]);
     });
   });
   $('#btn_clear_images').addEventListener('click', ()=>{
     document.querySelectorAll('.in_photo').forEach(i=>i.value='');
-    [g0,g1,g2,g3].forEach(img=>img.src='');
+    [g0,g1,g2,g3].forEach(img=>img.removeAttribute('src'));
     updateAll();
   });
 
-  // Live updates
-  document.getElementById('formPanel').addEventListener('input', updateAll);
-  document.getElementById('formPanel').addEventListener('keyup', updateAll);
+  // Save to Google Sheet via Vercel serverless function
+  document.getElementById('btn_save_sheet').addEventListener('click', async (e)=>{
+    e.preventDefault();
+    ensureQuotationNumber();
+    const payload={
+      qno:(inQNo.value||'').trim(),
+      name:(inName.value||'').trim(),
+      mobile:(inPhone.value||'').trim(),
+      amount:(pTotal.textContent||'0.00').trim(),
+      title:(inTitle.value||'').trim(),
+      signer:(inSignerName.value||'').trim()
+    };
+    try{
+      const resp=await fetch('/api/save',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+      const data=await resp.json();
+      if(!data.ok) throw new Error(data.error||'Unknown error');
+      alert('Saved to Google Sheet ✅');
+    }catch(err){
+      console.error(err);
+      alert('Could not save to Google Sheet. Check Vercel logs & env vars.');
+    }
+  });
 
-  // Save / Load JSON (for re-editing later)
+  // Save/Load JSON
   function collectState(){
-    const state = {
-      date: inDate.value, qno: $('#in_qno').value, name: inName.value, company: inCompany.value,
-      phone: inPhone.value, trn: $('#in_trn').value, area: inArea.value, address: inAddress.value,
+    return {
+      date: inDate.value, qno: inQNo.value, name: inName.value, company: inCompany.value,
+      phone: inPhone.value, trn: inTRN.value, area: inArea.value, address: inAddress.value,
       title: inTitle.value, detailsTitle: inDetailsTitle.value,
-      counts: { bed: inBed.value, bath: inBath.value, living: inLiving.value, kitchen: inKitchen.value, glass: inGlass.value, glassLabel: inGlassLabel.value },
+      counts:{ bed:inBed.value, bath:inBath.value, living:inLiving.value, kitchen:inKitchen.value, glass:inGlass.value, glassLabel:inGlassLabel.value },
       charge: inCharge.value, vat: inVat.value, duration: inDuration.value, team: inTeam.value,
       materials: inMaterials.value, tasks: inTasks.value, notes: inNotes.value, terms: inTerms.value,
-      signerName: $('#in_signer_name').value, signerRole: $('#in_signer_role').value, color: $('#in_color').value,
+      signerName: inSignerName.value, signerRole: inSignerRole.value, color: inColor.value,
       custom: Array.from(customList.querySelectorAll('.custom-row')).map(r=>({
         label: r.querySelector('[data-role="label"]').value,
         count: r.querySelector('[data-role="count"]').value
       }))
     };
-    return state;
   }
   function applyState(s){
     if(!s) return;
-    inDate.value=s.date||''; $('#in_qno').value=s.qno||''; inName.value=s.name||''; inCompany.value=s.company||'';
-    inPhone.value=s.phone||''; $('#in_trn').value=s.trn||''; inArea.value=s.area||''; inAddress.value=s.address||'';
+    inDate.value=s.date||''; inQNo.value=s.qno||''; inName.value=s.name||''; inCompany.value=s.company||'';
+    inPhone.value=s.phone||''; inTRN.value=s.trn||''; inArea.value=s.area||''; inAddress.value=s.address||'';
     inTitle.value=s.title||''; inDetailsTitle.value=s.detailsTitle||'';
     if(s.counts){ inBed.value=s.counts.bed||0; inBath.value=s.counts.bath||0; inLiving.value=s.counts.living||0; inKitchen.value=s.counts.kitchen||0; inGlass.value=s.counts.glass||0; inGlassLabel.value=s.counts.glassLabel||'Glass Cleaning'; }
     inCharge.value=s.charge||''; inVat.value=s.vat||''; inDuration.value=s.duration||''; inTeam.value=s.team||'';
     inMaterials.value=s.materials||''; inTasks.value=s.tasks||''; inNotes.value=s.notes||''; inTerms.value=s.terms||'';
-    $('#in_signer_name').value=s.signerName||''; $('#in_signer_role').value=s.signerRole||''; $('#in_color').value=s.color||'#f07100';
-    resetCustomList(0); (s.custom||[]).forEach(it=>addCustomRow(it.label||'', it.count||''));
-    if((s.custom||[]).length===0) resetCustomList();
+    inSignerName.value=s.signerName||''; inSignerRole.value=s.signerRole||''; inColor.value=s.color||'#f07100';
+    resetCustomList(0); (s.custom||[]).forEach(it=>addCustomRow(it.label||'', it.count||'')); if((s.custom||[]).length===0) resetCustomList();
     updateAll();
   }
-
   $('#btn_save_json').addEventListener('click', ()=>{
-    const data = JSON.stringify(collectState(), null, 2);
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([data], {type:'application/json'}));
-    const name = (inName.value || 'quotation').replace(/[^\w\-]+/g,'_');
-    a.download = `${name}_${inDate.value || 'date'}.json`;
-    a.click();
+    const data=JSON.stringify(collectState(),null,2);
+    const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));
+    const name=(inName.value||'quotation').replace(/[^\w\-]+/g,'_'); a.download=`${name}_${inDate.value||'date'}.json`; a.click();
   });
-  $('#in_load_json').addEventListener('change', (e)=>{
-    const f = e.target.files && e.target.files[0]; if(!f) return;
-    const r = new FileReader(); r.onload = ev => { try{ applyState(JSON.parse(ev.target.result)); }catch(err){ alert('Invalid JSON'); } };
+  $('#in_load_json').addEventListener('change',(e)=>{
+    const f=e.target.files && e.target.files[0]; if(!f) return;
+    const r=new FileReader(); r.onload=ev=>{ try{ applyState(JSON.parse(ev.target.result)); }catch(err){ alert('Invalid JSON'); } };
     r.readAsText(f);
   });
 
-  // Export PDF
+  // Generate PDF
   document.getElementById('btn_pdf').addEventListener('click', e=>{
     e.preventDefault();
+    ensureQuotationNumber();
+    secImages.style.display=hasGalleryImages()?'':'none';
     updateAll();
-    const safeName = (inName.value || 'Quotation').replace(/[^\w\-]+/g,'_');
-    const fn = `${safeName}_${inDate.value || todayISO}.pdf`;
+    const safeName=(inName.value||'Quotation').replace(/[^\w\-]+/g,'_');
+    const fn=`${safeName}_${inDate.value || todayISO}.pdf`;
     html2pdf().set({
       margin:0,
       filename:fn,
-      image:{ type:'jpeg', quality:0.98 },
-      html2canvas:{ scale:2, useCORS:true, backgroundColor:'#ffffff' },
-      jsPDF:{ unit:'px', format:[794,1123], orientation:'portrait' },
-      pagebreak:{ mode:['css','legacy'] }
-    }).from(document.getElementById('quote')).save();
+      image:{type:'jpeg',quality:0.98},
+      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},
+      jsPDF:{unit:'px',format:[794,1123],orientation:'portrait'},
+      pagebreak:{mode:['css','legacy']}
+    }).from(document.getElementById('quote')).save().then(()=>{
+      const current=getCounter();
+      if((inQNo.value||'').startsWith(Q_PREFIX)) setCounter(current+1);
+    });
   });
 
   // Reset
@@ -557,14 +556,14 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
     if(!confirm('Clear the form and preview?')) return;
     document.querySelectorAll('input[type=text], input[type=number], textarea').forEach(el=>el.value='');
     [inLogo,inSign].forEach(i=>i.value='');
-    [g0,g1,g2,g3].forEach(img=>img.src='');
-    resetCustomList();
-    updateAll();
+    [g0,g1,g2,g3].forEach(img=>img.removeAttribute('src'));
+    resetCustomList(); updateAll(); ensureQuotationNumber();
   });
 
-  // First render
-  updateAll();
-  window.addEventListener('load', updateAll);
+  // Live updates + init
+  document.getElementById('formPanel').addEventListener('input', updateAll);
+  document.getElementById('formPanel').addEventListener('keyup', updateAll);
+  updateAll(); ensureQuotationNumber(); window.addEventListener('load', updateAll);
 })();
 </script>
 </body>
