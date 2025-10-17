@@ -289,6 +289,21 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
   const $ = s => document.querySelector(s);
   const todayISO = new Date().toISOString().slice(0,10);
 
+  //Prefill next number on load
+  async function prefillQuotationNumber() {
+  const inQ = document.getElementById('in_qno');
+  if (inQ.value.trim()) return; // user already typed
+  try {
+    const r = await fetch('/api/peek-quote-no');
+    const d = await r.json();
+    if (d.ok && d.quotation_no) {
+      inQ.value = d.quotation_no;
+      document.getElementById('p_qno').textContent = d.quotation_no;
+    }
+  } catch {}
+  }
+
+
   // Auto quotation numbering
   const Q_PREFIX='SMS-QUO-'; const Q_PAD=4; const Q_START=100; const LS_Q_KEY='sms_quo_counter';
   function getCounter(){ const n=Number(localStorage.getItem(LS_Q_KEY)); return Number.isFinite(n)?n:Q_START; }
@@ -369,6 +384,8 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
     pSignerName.textContent=inSignerName.value.trim(); pSignerRole.textContent=inSignerRole.value.trim();
     secImages.style.display=hasGalleryImages()? '':'none';
     paginate();
+    prefillQuotationNumber();   // <— add this
+    window.addEventListener('load', updateAll);
   }
 
   function loadImageTo(fileInput,imgEl){
@@ -382,11 +399,12 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
   document.getElementById('btn_clear_images').addEventListener('click', ()=>{ document.querySelectorAll('.in_photo').forEach(i=>i.value=''); [g0,g1,g2,g3].forEach(img=>img.removeAttribute('src')); updateAll(); });
 
   // Save to DATABASE (Vercel Postgres)
-  document.getElementById('btn_save_sheet').addEventListener('click', async (e)=>{
+  document.getElementById('btn_pdf').addEventListener('click', async (e) => {
   e.preventDefault();
-  // do NOT force a client number; the server will generate if blank
+
+  // 1) Save to DB first (server will assign the authoritative number & version)
   const payload = {
-    qno: (inQNo.value||'').trim(),                       // optional
+    qno: (inQNo.value||'').trim(),                     // may be blank or prefilled peek
     name: (inName.value||'').trim(),
     mobile: (inPhone.value||'').trim(),
     amount: (pTotal.textContent||'0.00').trim(),
@@ -394,6 +412,7 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
     signer: (inSignerName.value||'').trim()
   };
 
+  let serverQNo = (inQNo.value||'').trim();
   try {
     const resp = await fetch('/api/save-quote', {
       method: 'POST',
@@ -401,23 +420,45 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
       body: JSON.stringify(payload)
     });
     const data = await resp.json();
-    if (!data.ok) throw new Error(data.error || 'Unknown error');
+    if (!data.ok) throw new Error(data.error || 'Save failed');
 
-    // write back the authoritative number & version from server
+    // sync the number/version decided by the server
     if (data.quotation_no) {
+      serverQNo = data.quotation_no;
       inQNo.value = data.quotation_no;
       document.getElementById('p_qno').textContent = data.quotation_no;
     }
-    if (data.version != null) {
-      alert(`Saved ✅  (Version ${data.version})`);
-    } else {
-      alert('Saved ✅');
+    if (typeof data.version !== 'undefined') {
+      console.log('Saved version', data.version);
     }
   } catch (err) {
     console.error(err);
-    alert('Could not save. Check Vercel logs.');
+    alert('Could not save the quotation to database. Please try again.');
+    return; // don’t generate if save failed
   }
-});
+
+  // 2) Hide images section if empty & refresh preview
+  const hasGalleryImages = () =>
+    Array.from(document.querySelectorAll('#p_gallery img'))
+      .some(img => !!img.getAttribute('src'));
+  document.getElementById('sec_images_block').style.display = hasGalleryImages() ? '' : 'none';
+  updateAll();
+
+  // 3) Generate PDF using the final quotation number in the filename
+  const todayISO = new Date().toISOString().slice(0,10);
+  const safeName = (inName.value || 'Quotation').replace(/[^\w\-]+/g, '_');
+  const finalName = `${serverQNo || 'Quotation'}_${safeName}_${inDate.value || todayISO}.pdf`;
+
+  html2pdf().set({
+    margin: 0,
+    filename: finalName,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+    jsPDF: { unit: 'px', format: [794, 1123], orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'] }
+  }).from(document.getElementById('quote')).save();
+  });
+
 
 
   // JSON Save/Load
@@ -444,4 +485,5 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
 </script>
 </body>
 </html>
+
 
