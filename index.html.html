@@ -459,10 +459,7 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
       console.warn('peek-quote-no failed', err);
     }
   }
-  // clear the "prefilled" flag if user edits manually
-  inQNo.addEventListener('input', () => { delete inQNo.dataset.prefilled; });
-
-
+ 
     // inside prefillQuotationNumber()
     if (d.ok && d.quotation_no) {
       inQNo.value = d.quotation_no;
@@ -609,6 +606,7 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
 </script>
 </body>
 </html>
+
 
 
 
