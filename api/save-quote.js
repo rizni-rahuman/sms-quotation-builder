@@ -96,6 +96,26 @@ module.exports = async (req, res) => {
     await client.query('BEGIN');
     await ensureTables(client);
 
+    // If client provided a number like SMS-QUO-0123, bump the counter up to that
+  if (qno && qno.trim()) {
+    const m = qno.trim().match(/^SMS-QUO-(\d+)$/);
+    if (m) {
+      const providedN = parseInt(m[1], 10);
+      await client.query(
+        `INSERT INTO quote_counters(prefix,last_number)
+         VALUES ($1, 0)
+         ON CONFLICT (prefix) DO NOTHING`,
+        [COUNTER_PREFIX]
+      );
+      await client.query(
+        `UPDATE quote_counters
+           SET last_number = GREATEST(last_number, $2), updated_at = now()
+         WHERE prefix = $1`,
+        [COUNTER_PREFIX, providedN]
+      );
+    }
+  }
+
     // 1) If no qno was sent, generate one from counter
     if (!qno || !qno.trim()) {
       const next = await nextCounter(client, COUNTER_PREFIX);
