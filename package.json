@@ -4,6 +4,6 @@
   "private": true,
   "license": "MIT",
   "dependencies": {
-    "googleapis": "^133.0.0"
+    "pg": "^8.12.0"
   }
 }
