@@ -383,15 +383,42 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
 
   // Save to DATABASE (Vercel Postgres)
   document.getElementById('btn_save_sheet').addEventListener('click', async (e)=>{
-    e.preventDefault();
-    ensureQuotationNumber();
-    const payload={ qno:(inQNo.value||'').trim(), name:(inName.value||'').trim(), mobile:(inPhone.value||'').trim(), amount:(pTotal.textContent||'0.00').trim(), title:(inTitle.value||'').trim(), signer:(inSignerName.value||'').trim() };
-    try{
-      const resp=await fetch('/api/save-quote',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
-      const data=await resp.json(); if(!data.ok) throw new Error(data.error||'Unknown error');
-      alert('Saved to database ✅');
-    }catch(err){ console.error(err); alert('Could not save. Check Vercel logs.'); }
-  });
+  e.preventDefault();
+  // do NOT force a client number; the server will generate if blank
+  const payload = {
+    qno: (inQNo.value||'').trim(),                       // optional
+    name: (inName.value||'').trim(),
+    mobile: (inPhone.value||'').trim(),
+    amount: (pTotal.textContent||'0.00').trim(),
+    title: (inTitle.value||'').trim(),
+    signer: (inSignerName.value||'').trim()
+  };
+
+  try {
+    const resp = await fetch('/api/save-quote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || 'Unknown error');
+
+    // write back the authoritative number & version from server
+    if (data.quotation_no) {
+      inQNo.value = data.quotation_no;
+      document.getElementById('p_qno').textContent = data.quotation_no;
+    }
+    if (data.version != null) {
+      alert(`Saved ✅  (Version ${data.version})`);
+    } else {
+      alert('Saved ✅');
+    }
+  } catch (err) {
+    console.error(err);
+    alert('Could not save. Check Vercel logs.');
+  }
+});
+
 
   // JSON Save/Load
   function collectState(){ return { date:inDate.value, qno:inQNo.value, name:inName.value, company:inCompany.value, phone:inPhone.value, trn:inTRN.value, area:inArea.value, address:inAddress.value, title:inTitle.value, detailsTitle:inDetailsTitle.value, counts:{bed:inBed.value,bath:inBath.value,living:inLiving.value,kitchen:inKitchen.value,glass:inGlass.value,glassLabel:inGlassLabel.value}, charge:inCharge.value, vat:inVat.value, duration:inDuration.value, team:inTeam.value, materials:inMaterials.value, tasks:inTasks.value, notes:inNotes.value, terms:inTerms.value, signerName:inSignerName.value, signerRole:inSignerRole.value, color:inColor.value, custom:Array.from(document.querySelectorAll('#custom_list .custom-row')).map(r=>({label:r.querySelector('[data-role=\"label\"]').value, count:r.querySelector('[data-role=\"count\"]').value})) }; }
@@ -417,3 +444,4 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
 </script>
 </body>
 </html>
+
