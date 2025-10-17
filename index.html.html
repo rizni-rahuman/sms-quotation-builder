@@ -454,6 +454,15 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
         pQNo.textContent = d.quotation_no;
       }
     }catch{}
+
+    // inside prefillQuotationNumber()
+    if (d.ok && d.quotation_no) {
+      inQNo.value = d.quotation_no;
+      inQNo.dataset.prefilled = "1";              // <-- mark as prefetched
+      pQNo.textContent = d.quotation_no;
+    }
+    inQNo.addEventListener('input', () => { delete inQNo.dataset.prefilled; });
+
   }
 
   // JSON Save/Load
@@ -491,57 +500,77 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
   });
 
   // Generate PDF = Save to DB + PDF
+  
   document.getElementById('btn_pdf').addEventListener('click', async (e)=>{
-    e.preventDefault();
+  e.preventDefault();
 
-    // Save first
-    const payload = {
-      qno: (inQNo.value||'').trim(),
-      name: (inName.value||'').trim(),
-      mobile: (inPhone.value||'').trim(),
-      amount: (pTotal.textContent||'0.00').trim(),
-      title: (inTitle.value||'').trim(),
-      signer: (inSignerName.value||'').trim()
-    };
+  const isPrefilled = inQNo.dataset.prefilled === "1";
+  const qnoForServer = isPrefilled ? '' : (inQNo.value || '').trim();  // <-- key line
 
-    let serverQNo = (inQNo.value||'').trim();
-    try{
-      const resp = await fetch('/api/save-quote', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(payload)
-      });
-      const data = await resp.json();
-      if (!data.ok) throw new Error(data.error || 'Save failed');
+  const payload = {
+    qno: qnoForServer,
+    name: (inName.value||'').trim(),
+    mobile: (inPhone.value||'').trim(),
+    amount: (pTotal.textContent||'0.00').trim(),
+    title: (inTitle.value||'').trim(),
+    signer: (inSignerName.value||'').trim()
+  };
 
-      if (data.quotation_no){
-        serverQNo = data.quotation_no;
-        inQNo.value = data.quotation_no;
-        pQNo.textContent = data.quotation_no;
-      }
-      // optional: use data.version
-    }catch(err){
-      console.error(err);
-      alert('Could not save the quotation to database. Please try again.');
-      return;
-    }
+  let serverQNo = (inQNo.value||'').trim();
 
-    // Update preview and hide empty images section
-    secImages.style.display = hasGalleryImages()? '' : 'none';
-    updateAll();
+  // 1) SAVE FIRST
+  let data;
+  try {
+    const resp = await fetch('/api/save-quote', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    data = await resp.json();
+    if (!data.ok) throw new Error(data.error || 'Save failed');
+  } catch (err) {
+    console.error(err);
+    alert('Could not save the quotation to database. Please try again.');
+    return;
+  }
 
-    // Generate PDF filename with final quotation no.
-    const safeName=(inName.value||'Quotation').replace(/[^\w\-]+/g,'_');
-    const fn=`${serverQNo || 'Quotation'}_${safeName}_${inDate.value || todayISO}.pdf`;
+  // write back the authoritative number/version
+  if (data.quotation_no){
+    serverQNo = data.quotation_no;
+    inQNo.value = data.quotation_no;
+    delete inQNo.dataset.prefilled;               // it’s now a real assigned number
+    document.getElementById('p_qno').textContent = data.quotation_no;
+  }
 
-    html2pdf().set({
-      margin:0,
-      filename:fn,
-      image:{type:'jpeg',quality:0.98},
-      html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},
-      jsPDF:{unit:'px',format:[794,1123],orientation:'portrait'},
-      pagebreak:{mode:['css','legacy']}
-    }).from(document.getElementById('quote')).save();
-  });
+  // 2) UPDATE PREVIEW & HIDE EMPTY IMAGES
+  const hasGalleryImages = () =>
+    Array.from(document.querySelectorAll('#p_gallery img'))
+      .some(img => !!img.getAttribute('src'));
+  document.getElementById('sec_images_block').style.display = hasGalleryImages()? '' : 'none';
+  updateAll();
+
+  // 3) GENERATE PDF (await it so errors are visible)
+  const safeName=(inName.value||'Quotation').replace(/[^\w\-]+/g,'_');
+  const todayISO = new Date().toISOString().slice(0,10);
+  const fn=`${serverQNo || 'Quotation'}_${safeName}_${inDate.value || todayISO}.pdf`;
+
+  try {
+    await html2pdf()
+      .set({
+        margin:0,
+        filename:fn,
+        image:{type:'jpeg',quality:0.98},
+        html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},
+        jsPDF:{unit:'px',format:[794,1123],orientation:'portrait'},
+        pagebreak:{mode:['css','legacy']}
+      })
+      .from(document.getElementById('quote'))
+      .save();
+  } catch (err) {
+    console.error('PDF error:', err);
+    alert('PDF could not be generated. Check console for details.');
+  }
+});
+
 
   // Reset
   document.getElementById('btn_reset').addEventListener('click', ()=>{
@@ -564,3 +593,4 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
 </script>
 </body>
 </html>
+
