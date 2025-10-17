@@ -306,6 +306,9 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
   </div>
 </div>
 
+  <!-- put these just before your app’s <script> -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 <script src="./assets/html2canvas.min.js"></script>
 <script src="./assets/html2pdf.bundle.min.js"></script>
 <script>
@@ -445,15 +448,23 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
 
   // Prefill next quotation number (peek; not reserved)
   async function prefillQuotationNumber(){
-    if (inQNo.value.trim()) return;
-    try{
-      const r = await fetch('/api/peek-quote-no');
-      const d = await r.json();
-      if (d.ok && d.quotation_no){
-        inQNo.value = d.quotation_no;
-        pQNo.textContent = d.quotation_no;
-      }
-    }catch{}
+  if (inQNo.value.trim()) return; // user already typed
+  try {
+    const res = await fetch('/api/peek-quote-no');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && data.ok && data.quotation_no) {
+      inQNo.value = data.quotation_no;
+      inQNo.dataset.prefilled = "1";      // mark as peeked
+      pQNo.textContent = data.quotation_no;
+    }
+    } catch (err) {
+      console.warn('peek-quote-no failed', err);
+    }
+  }
+  // clear the "prefilled" flag if user edits manually
+  inQNo.addEventListener('input', () => { delete inQNo.dataset.prefilled; });
+
 
     // inside prefillQuotationNumber()
     if (d.ok && d.quotation_no) {
@@ -552,7 +563,12 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
   const safeName=(inName.value||'Quotation').replace(/[^\w\-]+/g,'_');
   const todayISO = new Date().toISOString().slice(0,10);
   const fn=`${serverQNo || 'Quotation'}_${safeName}_${inDate.value || todayISO}.pdf`;
-
+  
+  if (typeof html2pdf === 'undefined') {
+  alert('PDF library failed to load. Please refresh the page.');
+  return;
+  }  
+    
   try {
     await html2pdf()
       .set({
@@ -593,5 +609,6 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
 </script>
 </body>
 </html>
+
 
 
