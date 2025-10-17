@@ -563,6 +563,9 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
   const safeName=(inName.value||'Quotation').replace(/[^\w\-]+/g,'_');
   const todayISO = new Date().toISOString().slice(0,10);
   const fn=`${serverQNo || 'Quotation'}_${safeName}_${inDate.value || todayISO}.pdf`;
+  const isPrefilled = inQNo.dataset.prefilled === "1";
+  const qnoForServer = isPrefilled ? '' : (inQNo.value || '').trim();
+
   
   if (typeof html2pdf === 'undefined') {
   alert('PDF library failed to load. Please refresh the page.');
@@ -609,6 +612,7 @@ Deep cleaning & disinfecting of Bathrooms and Toilets</textarea></div>
 </script>
 </body>
 </html>
+
 
 
 
